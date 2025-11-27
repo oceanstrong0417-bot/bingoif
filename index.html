@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бинго, ты узнал свои тайные желания</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff0000, #ffffff, #ff0000);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+            padding: 0 10px;
+            word-wrap: break-word;
+        }
+        
+        .subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            color: #cccccc;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .dice-section {
+            flex: 1;
+            min-width: 280px;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 0, 0, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .dice-container {
+            perspective: 1000px;
+            margin: 20px 0;
+        }
+        
+        .dice {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.5s ease-out;
+        }
+        
+        .dice-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #ff0000;
+            border: 2px solid #ffffff;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .dice-face-1 { transform: rotateY(0deg) translateZ(50px); }
+        .dice-face-2 { transform: rotateY(180deg) translateZ(50px); }
+        .dice-face-3 { transform: rotateY(90deg) translateZ(50px); }
+        .dice-face-4 { transform: rotateY(-90deg) translateZ(50px); }
+        .dice-face-5 { transform: rotateX(90deg) translateZ(50px); }
+        .dice-face-6 { transform: rotateX(-90deg) translateZ(50px); }
+        
+        .roll-btn {
+            background: linear-gradient(45deg, #ff0000, #cc0000);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+            margin-top: 15px;
+            width: 100%;
+            max-width: 200px;
+        }
+        
+        .roll-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 0, 0, 0.5);
+        }
+        
+        .roll-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .cards-section {
+            flex: 2;
+            min-width: 280px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .bingo-card {
+            background: #1a1a1a;
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            max-width: 100%;
+        }
+        
+        .card-number {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #ff0000;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .card-title {
+            font-size: 1rem;
+            margin: 25px 0 12px 0;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 0 5px;
+            width: 100%;
+            word-wrap: break-word;
+        }
+        
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+        
+        .bingo-cell {
+            background: #0a0a0a;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #cccccc;
+            min-height: 70px;
+            overflow: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .bingo-cell:hover {
+            background: rgba(255, 0, 0, 0.2);
+        }
+        
+        .bingo-cell.revealed {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: #ffffff;
+            color: #ffffff;
+            font-size: 0.7rem;
+            padding: 5px;
+        }
+        
+        .instructions {
+            margin-top: 25px;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .instructions h2 {
+            color: #ff0000;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
+        
+        .instructions p {
+            line-height: 1.5;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        /* Адаптивность для очень маленьких экранов */
+        @media (max-width: 480px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .dice-section {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .cards-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .bingo-cell {
+                min-height: 60px;
+                font-size: 0.7rem;
+            }
+            
+            .bingo-cell.revealed {
+                font-size: 0.65rem;
+            }
+        }
+        
+        @media (max-width: 350px) {
+            .bingo-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(3, 1fr);
+            }
+            
+            .bingo-cell {
+                min-height: 55px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>БИНГО, ТЫ УЗНАЛ СВОИ ТАЙНЫЕ ЖЕЛАНИЯ</h1>
+        <div class="subtitle">100% понимания, 0% осуждения</div>
+    </div>
+    
+    <div class="game-container">
+        <div class="dice-section">
+            <h2>Брось кубик</h2>
+            <div class="dice-container">
+                <div class="dice" id="dice">
+                    <div class="dice-face dice-face-1">1</div>
+                    <div class="dice-face dice-face-2">2</div>
+                    <div class="dice-face dice-face-3">3</div>
+                    <div class="dice-face dice-face-4">4</div>
+                    <div class="dice-face dice-face-5">5</div>
+                    <div class="dice-face dice-face-6">6</div>
+                </div>
+            </div>
+            <button class="roll-btn" id="rollBtn">БРОСИТЬ КУБИК</button>
+            <div id="result" style="margin-top: 15px; font-size: 1.1rem; text-align: center;"></div>
+        </div>
+        
+        <div class="cards-section" id="cardsContainer">
+            <!-- Карточки будут сгенерированы через JavaScript -->
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <h2>Как играть?</h2>
+        <p>1. Нажмите кнопку "БРОСИТЬ КУБИК", чтобы бросить виртуальный кубик.</p>
+        <p>2. Когда кубик остановится, вы увидите выпавшее число.</p>
+        <p>3. Нажмите на карточку с соответствующим номером, чтобы открыть тайные желания.</p>
+        <p>4. Нажимайте на квадраты внутри карточки, чтобы открыть отдельные желания.</p>
+        <p>5. Наслаждайтесь откровениями в стиле "100% понимания, 0% осуждения"!</p>
+    </div>
+
+    <script>
+        // Тайные желания для карточек бинго
+        const secretWishes = [
+            {
+                title: "Карточка 1: Социальные табу",
+                wishes: [
+                    "Хочу сбежать с работы и поехать в кругосветку",
+                    "Мечтаю отменить все планы и целый день смотреть сериалы",
+                    "Хочу кричать, когда начальство говорит глупости",
+                    "Мечтаю есть торт на завтрак, обед и ужин",
+                    "Хочу игнорировать все сообщения неделю",
+                    "Мечтаю сказать всем, что я на самом деле о них думаю"
+                ]
+            },
+            {
+                title: "Карточка 2: Романтические фантазии",
+                wishes: [
+                    "Хочу, чтобы за мной ухаживали, как в романтических фильмах",
+                    "Мечтаю о спонтанном приключении с незнакомцем",
+                    "Хочу получить любовное письмо с признаниями",
+                    "Мечтаю танцевать под дождем без зонта",
+                    "Хочу, чтобы кто-то украл моё сердце неожиданно",
+                    "Мечтаю о поцелуе в Париже на закате"
+                ]
+            },
+            {
+                title: "Карточка 3: Карьерные мечты",
+                wishes: [
+                    "Хочу уволиться и открыть кофейню на берегу моря",
+                    "Мечтаю стать знаменитым, не прилагая усилий",
+                    "Хочу, чтобы работа находила меня сама",
+                    "Мечтаю о зарплате мечты без ответственности",
+                    "Хочу работать в пижаме и не выходить из дома",
+                    "Мечтаю, чтобы начальник был моим лучшим другом"
+                ]
+            },
+            {
+                title: "Карточка 4: Повседневные слабости",
+                wishes: [
+                    "Хочу есть макароны с сыром каждый день",
+                    "Мечтаю не мыть посуду никогда",
+                    "Хочу, чтобы уборка делалась сама собой",
+                    "Мечтаю о гардеробе, который собирается сам",
+                    "Хочу завтракать в постели каждый день",
+                    "Мечтаю о личном поваре и уборщице"
+                ]
+            },
+            {
+                title: "Карточка 5: Отношения с людьми",
+                wishes: [
+                    "Хочу говорить 'нет' без объяснений",
+                    "Мечтаю отменить все обязательные встречи",
+                    "Хочу, чтобы люди читали мои мысли",
+                    "Мечтаю о дне, когда можно не быть вежливым",
+                    "Хочу пропасть из соцсетей без последствий",
+                    "Мечтаю, чтобы все всегда соглашались с моим мнением"
+                ]
+            },
+            {
+                title: "Карточка 6: Детские мечты",
+                wishes: [
+                    "Хочу снова верить в Деда Мороза",
+                    "Мечтаю покататься на единороге",
+                    "Хочу, чтобы конфеты росли на деревьях",
+                    "Мечтаю о доме из шоколада и печенья",
+                    "Хочу, чтобы на работу можно было ходить в пижаме",
+                    "Мечтаю о волшебной палочке для исполнения желаний"
+                ]
+            }
+        ];
+
+        // Элементы DOM
+        const dice = document.getElementById('dice');
+        const rollBtn = document.getElementById('rollBtn');
+        const result = document.getElementById('result');
+        const cardsContainer = document.getElementById('cardsContainer');
+
+        // Создание карточек бинго
+        function createBingoCards() {
+            cardsContainer.innerHTML = '';
+            
+            secretWishes.forEach((cardData, index) => {
+                const card = document.createElement('div');
+                card.className = 'bingo-card';
+                card.dataset.number = index + 1;
+                
+                let gridHTML = '';
+                cardData.wishes.forEach((wish, wishIndex) => {
+                    gridHTML += `<div class="bingo-cell" data-wish="${wishIndex}">?</div>`;
+                });
+                
+                card.innerHTML = `
+                    <div class="card-number">${index + 1}</div>
+                    <div class="card-title">${cardData.title}</div>
+                    <div class="bingo-grid">
+                        ${gridHTML}
+                    </div>
+                `;
+                
+                // Добавляем обработчики для ячеек
+                card.querySelectorAll('.bingo-cell').forEach(cell => {
+                    cell.addEventListener('click', function() {
+                        const wishIndex = parseInt(this.dataset.wish);
+                        if (!this.classList.contains('revealed')) {
+                            this.textContent = cardData.wishes[wishIndex];
+                            this.classList.add('revealed');
+                        }
+                    });
+                });
+                
+                cardsContainer.appendChild(card);
+            });
+        }
+
+        // Бросок кубика
+        function rollDice() {
+            // Отключаем кнопку на время анимации
+            rollBtn.disabled = true;
+            result.textContent = '';
+            
+            // Генерируем случайное число от 1 до 6
+            const randomNumber = Math.floor(Math.random() * 6) + 1;
+            
+            // Правильные углы поворота для каждой грани кубика
+            const rotations = {
+                1: 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)',
+                2: 'rotateX(0deg) rotateY(0deg) rotateZ(180deg)',
+                3: 'rotateX(0deg) rotateY(270deg) rotateZ(0deg)',
+                4: 'rotateX(0deg) rotateY(90deg) rotateZ(0deg)',
+                5: 'rotateX(270deg) rotateY(0deg) rotateZ(0deg)',
+                6: 'rotateX(90deg) rotateY(0deg) rotateZ(0deg)'
+            };
+            
+            // Добавляем дополнительные вращения для анимации
+            const extraRotations = 5; // Количество дополнительных полных вращений
+            const startRotation = `rotateX(${extraRotations * 360 + Math.random() * 360}deg) rotateY(${extraRotations * 360 + Math.random() * 360}deg) rotateZ(${extraRotations * 360 + Math.random() * 360}deg)`;
+            
+            // Начальная позиция (сильно повернутый кубик)
+            dice.style.transform = startRotation;
+            
+            // Даем время для начала анимации
+            setTimeout(() => {
+                // Конечная позиция (нужная грань)
+                dice.style.transform = rotations[randomNumber];
+                
+                // Показываем результат через 1.5 секунды (после завершения анимации)
+                setTimeout(() => {
+                    result.textContent = `Выпало число: ${randomNumber}`;
+                    result.style.color = '#ff0000';
+                    result.style.fontWeight = 'bold';
+                    
+                    // Включаем кнопку снова
+                    rollBtn.disabled = false;
+                    
+                    // Подсвечиваем соответствующую карточку
+                    highlightCard(randomNumber);
+                }, 1500);
+            }, 100);
+        }
+
+        // Подсветка карточки с соответствующим номером
+        function highlightCard(number) {
+            // Убираем подсветку со всех карточек
+            document.querySelectorAll('.bingo-card').forEach(card => {
+                card.style.borderColor = '#ff0000';
+                card.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.3)';
+            });
+            
+            // Подсвечиваем карточку с нужным номером
+            const targetCard = document.querySelector(`.bingo-card[data-number="${number}"]`);
+            if (targetCard) {
+                targetCard.style.borderColor = '#ffffff';
+                targetCard.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.5)';
+                
+                // Прокручиваем к карточке
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Инициализация игры
+        function initGame() {
+            createBingoCards();
+            rollBtn.addEventListener('click', rollDice);
+        }
+
+        // Запуск игры при загрузке страницы
+        window.onload = initGame;
+    </script>
+</body>
+</html>
